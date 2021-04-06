@@ -20,15 +20,15 @@ import android.graphics.RectF
 import android.util.Log
 import androidx.annotation.MainThread
 import com.google.android.gms.tasks.Task
-import com.google.mlkit.md.camera.CameraReticleAnimator
-import com.google.mlkit.md.camera.GraphicOverlay
-import com.google.mlkit.md.R
-import com.google.mlkit.md.camera.WorkflowModel
-import com.google.mlkit.md.camera.WorkflowModel.WorkflowState
-import com.google.mlkit.md.camera.FrameProcessorBase
-import com.google.mlkit.md.settings.PreferenceUtils
 import com.google.mlkit.common.model.LocalModel
 import com.google.mlkit.md.InputInfo
+import com.google.mlkit.md.R
+import com.google.mlkit.md.camera.CameraReticleAnimator
+import com.google.mlkit.md.camera.FrameProcessorBase
+import com.google.mlkit.md.camera.GraphicOverlay
+import com.google.mlkit.md.camera.WorkflowModel
+import com.google.mlkit.md.camera.WorkflowModel.WorkflowState
+import com.google.mlkit.md.settings.PreferenceUtils
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.objects.DetectedObject
 import com.google.mlkit.vision.objects.ObjectDetection
@@ -37,7 +37,7 @@ import com.google.mlkit.vision.objects.ObjectDetectorOptionsBase
 import com.google.mlkit.vision.objects.custom.CustomObjectDetectorOptions
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
 import java.io.IOException
-import java.util.ArrayList
+import java.util.*
 
 /** A processor to run object detector in prominent object only mode.  */
 class ProminentObjectProcessor(
@@ -118,7 +118,7 @@ class ProminentObjectProcessor(
                 // User is confirming the object selection.
                 confirmationController.confirming(visionObject.trackingId)
                 workflowModel.confirmingObject(
-                        DetectedObjectInfo(visionObject, objectIndex, inputInfo), confirmationController.progress
+                        DetectedObjectInfo(visionObject, inputInfo), confirmationController.progress
                 )
             } else {
                 // Object detected but user doesn't want to pick this one.

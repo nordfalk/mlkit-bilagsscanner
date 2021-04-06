@@ -23,23 +23,23 @@ import androidx.annotation.MainThread
 import androidx.core.util.forEach
 import androidx.core.util.set
 import com.google.android.gms.tasks.Task
-import com.google.mlkit.md.camera.CameraReticleAnimator
-import com.google.mlkit.md.camera.GraphicOverlay
-import com.google.mlkit.md.R
-import com.google.mlkit.md.camera.WorkflowModel
-import com.google.mlkit.md.camera.FrameProcessorBase
-import com.google.mlkit.md.settings.PreferenceUtils
 import com.google.mlkit.common.model.LocalModel
 import com.google.mlkit.md.InputInfo
+import com.google.mlkit.md.R
+import com.google.mlkit.md.camera.CameraReticleAnimator
+import com.google.mlkit.md.camera.FrameProcessorBase
+import com.google.mlkit.md.camera.GraphicOverlay
+import com.google.mlkit.md.camera.WorkflowModel
+import com.google.mlkit.md.settings.PreferenceUtils
 import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.objects.custom.CustomObjectDetectorOptions
-import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
 import com.google.mlkit.vision.objects.DetectedObject
 import com.google.mlkit.vision.objects.ObjectDetection
 import com.google.mlkit.vision.objects.ObjectDetector
 import com.google.mlkit.vision.objects.ObjectDetectorOptionsBase
+import com.google.mlkit.vision.objects.custom.CustomObjectDetectorOptions
+import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
 import java.io.IOException
-import java.util.ArrayList
+import java.util.*
 import kotlin.math.hypot
 
 /** A processor to run object detector in multi-objects mode.  */
@@ -125,7 +125,7 @@ class MultiObjectProcessor(
         for (i in objects.indices) {
             val result = objects[i]
             if (selectedObject == null && shouldSelectObject(graphicOverlay, result)) {
-                selectedObject = DetectedObjectInfo(result, i, inputInfo)
+                selectedObject = DetectedObjectInfo(result, inputInfo)
                 // Starts the object confirmation once an object is regarded as selected.
                 confirmationController.confirming(result.trackingId)
                 graphicOverlay.add(ObjectConfirmationGraphic(graphicOverlay, confirmationController))
@@ -150,7 +150,7 @@ class MultiObjectProcessor(
                 }
                 graphicOverlay.add(
                     ObjectDotGraphic(
-                        graphicOverlay, DetectedObjectInfo(result, i, inputInfo), objectDotAnimator
+                        graphicOverlay, DetectedObjectInfo(result, inputInfo), objectDotAnimator
                     )
                 )
             }

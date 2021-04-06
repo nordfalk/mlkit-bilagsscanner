@@ -20,9 +20,6 @@
     <item quantity="other">%d matches found</item>
   </plurals>
   <string name="buttom_sheet_custom_model_title">Custom object found</string>
-    <string name="static_image_card_no_result_title">No result found</string>
-  <string name="static_image_card_no_result_subtitle">Support text place holder</string>
-  <string name="static_image_preview_card_subtitle">+%d more results</string>
 
   <!-- Strings for camera settings. -->
   <string name="pref_category_camera">Camera</string>

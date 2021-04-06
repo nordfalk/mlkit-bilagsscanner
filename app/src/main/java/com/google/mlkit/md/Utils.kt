@@ -17,34 +17,19 @@
 package com.google.mlkit.md
 
 import android.app.Activity
-import android.content.ContentResolver
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.Matrix
-import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode
-import android.graphics.Rect
-import android.graphics.RectF
-import android.graphics.YuvImage
+import android.graphics.*
 import android.hardware.Camera
-import android.net.Uri
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.checkSelfPermission
-import androidx.exifinterface.media.ExifInterface
 import com.google.mlkit.md.camera.CameraSizePair
 import com.google.mlkit.vision.common.InputImage
 import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.io.InputStream
 import java.nio.ByteBuffer
-import java.util.ArrayList
+import java.util.*
 import kotlin.math.abs
 
 /** Utility class to provide helper methods.  */
