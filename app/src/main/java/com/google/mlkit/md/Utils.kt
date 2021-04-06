@@ -56,8 +56,6 @@ object Utils {
      */
     const val ASPECT_RATIO_TOLERANCE = 0.01f
 
-    internal const val REQUEST_CODE_PHOTO_LIBRARY = 1
-
     private const val TAG = "Utils"
 
     internal fun requestRuntimePermissions(activity: Activity) {
@@ -169,13 +167,6 @@ object Utils {
             Log.e(TAG, "Error: " + e.message)
         }
         return null
-    }
-
-    internal fun openImagePicker(activity: Activity) {
-        val intent = Intent(Intent.ACTION_GET_CONTENT)
-        intent.addCategory(Intent.CATEGORY_OPENABLE)
-        intent.type = "image/*"
-        activity.startActivityForResult(intent, REQUEST_CODE_PHOTO_LIBRARY)
     }
 
     @Throws(IOException::class)

@@ -38,18 +38,6 @@
     </activity>
 
     <activity
-        android:name="com.google.mlkit.md.LiveBarcodeScanningActivity"
-        android:exported="false"
-        android:screenOrientation="portrait">
-    </activity>
-
-    <activity
-        android:name="com.google.mlkit.md.StaticObjectDetectionActivity"
-        android:exported="false"
-        android:screenOrientation="portrait">
-    </activity>
-
-    <activity
         android:name="com.google.mlkit.md.CustomModelObjectDetectionActivity"
         android:exported="false"
         android:screenOrientation="portrait">
