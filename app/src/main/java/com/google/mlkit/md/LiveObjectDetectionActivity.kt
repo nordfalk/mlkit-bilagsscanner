@@ -1,3 +1,5 @@
+package com.google.mlkit.md
+
 /*
  * Copyright 2020 Google LLC
  *
@@ -13,8 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.google.mlkit.md
 
 import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
@@ -46,8 +46,8 @@ import com.google.mlkit.md.camera.CameraSourcePreview
 import com.google.mlkit.md.objectdetection.MultiObjectProcessor
 import com.google.mlkit.md.objectdetection.ProminentObjectProcessor
 import com.google.mlkit.md.productsearch.BottomSheetScrimView
+import com.google.mlkit.md.productsearch.Product
 import com.google.mlkit.md.productsearch.ProductAdapter
-import com.google.mlkit.md.productsearch.SearchEngine
 import com.google.mlkit.md.settings.PreferenceUtils
 import com.google.mlkit.md.settings.SettingsActivity
 import java.io.IOException
@@ -67,7 +67,6 @@ class LiveObjectDetectionActivity : AppCompatActivity(), OnClickListener {
     private var searchProgressBar: ProgressBar? = null
     private var workflowModel: WorkflowModel? = null
     private var currentWorkflowState: WorkflowState? = null
-    private var searchEngine: SearchEngine? = null
 
     private var bottomSheetBehavior: BottomSheetBehavior<View>? = null
     private var bottomSheetScrimView: BottomSheetScrimView? = null
@@ -79,7 +78,6 @@ class LiveObjectDetectionActivity : AppCompatActivity(), OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        searchEngine = SearchEngine(applicationContext)
 
         setContentView(R.layout.activity_live_object)
         preview = findViewById(R.id.camera_preview)
@@ -138,7 +136,6 @@ class LiveObjectDetectionActivity : AppCompatActivity(), OnClickListener {
         super.onDestroy()
         cameraSource?.release()
         cameraSource = null
-        searchEngine?.shutdown()
     }
 
     override fun onBackPressed() {
@@ -273,12 +270,20 @@ class LiveObjectDetectionActivity : AppCompatActivity(), OnClickListener {
                 }
             })
 
-            // Observes changes on the object to search, if happens, fire product search request.
+            /*
             objectToSearch.observe(this@LiveObjectDetectionActivity, Observer { detectObject ->
                 searchEngine!!.search(detectObject) { detectedObject, products ->
                     workflowModel?.onSearchCompleted(detectedObject, products)
                 }
             })
+             */
+            // Observes changes on the object to search, if happens, fire product search request.
+            objectToSearch.observe(this@LiveObjectDetectionActivity, Observer { detectObject ->
+                val productList = ArrayList<Product>()
+                productList.add(Product("" /* imageUrl */, ""+detectObject.objectId, ""+detectObject.boundingBox /* subtitle */))
+                workflowModel?.onSearchCompleted(detectObject, productList)
+            })
+
 
             // Observes changes on the object that has search completed, if happens, show the bottom sheet
             // to present search result.

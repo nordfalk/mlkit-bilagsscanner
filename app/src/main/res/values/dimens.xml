@@ -49,7 +49,5 @@
   <dimen name="preview_card_title_padding_top">12dp</dimen>
   <dimen name="preview_card_subtitle_text_size">14sp</dimen>
   <dimen name="preview_card_subtitle_padding_top">4dp</dimen>
-    <dimen name="static_image_dot_radius_selected">14dp</dimen>
-  <dimen name="static_image_dot_radius_unselected">10dp</dimen>
     <dimen name="divider_height">1dp</dimen>
 </resources>

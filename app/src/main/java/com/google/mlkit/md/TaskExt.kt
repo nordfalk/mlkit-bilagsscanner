@@ -41,20 +41,3 @@ fun <TResult> Task<TResult>.addOnFailureListener(executor: Executor,
     return addOnFailureListener(executor, OnFailureListener(listener))
 }
 
-/**
- * Quality-of-life helper to allow using trailing lambda syntax for adding a completion listener to
- * a [Task].
- */
-fun <TResult> Task<TResult>.addOnCompleteListener(executor: Executor,
-                                                  listener: (Task<TResult>) -> Unit): Task<TResult> {
-    return addOnCompleteListener(executor, OnCompleteListener(listener))
-}
-
-/**
- * Quality-of-life helper to allow using trailing lambda syntax for adding a cancellation listener
- * to a [Task].
- */
-fun <TResult> Task<TResult>.addOnCanceledListener(executor: Executor,
-                                                  listener: () -> Unit): Task<TResult> {
-    return addOnCanceledListener(executor, OnCanceledListener(listener))
-}

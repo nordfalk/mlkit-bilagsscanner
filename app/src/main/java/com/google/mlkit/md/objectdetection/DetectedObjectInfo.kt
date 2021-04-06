@@ -30,7 +30,6 @@ import java.io.IOException
  */
 class DetectedObjectInfo(
     private val detectedObject: DetectedObject,
-    val objectIndex: Int,
     private val inputInfo: InputInfo
 ) {
 
@@ -41,6 +40,7 @@ class DetectedObjectInfo(
     val boundingBox: Rect = detectedObject.boundingBox
     val labels: List<DetectedObject.Label> = detectedObject.labels
 
+    @Suppress("unused")
     val imageData: ByteArray?
         @Synchronized get() {
             if (jpegBytes == null) {
