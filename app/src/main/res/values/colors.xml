@@ -16,9 +16,5 @@
   <color name="object_reticle_outer_ring_fill">#1F000000</color>
   <color name="object_reticle_outer_ring_stroke">#9AFFFFFF</color>
   <color name="object_reticle_inner_ring">@color/white</color>
-  <color name="barcode_reticle_background">#99000000</color>
-  <color name="barcode_reticle_stroke">#40000000</color>
-  <color name="barcode_field_value">#797979</color>
-  <color name="barcode_field_box_stroke">#757575</color>
-  <color name="product_description">#5F6368</color>
+    <color name="product_description">#5F6368</color>
 </resources>
