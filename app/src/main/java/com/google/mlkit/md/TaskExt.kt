@@ -16,11 +16,9 @@
 
 package com.google.mlkit.md
 
-import com.google.android.gms.tasks.Task
-import com.google.android.gms.tasks.OnCanceledListener
-import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
+import com.google.android.gms.tasks.Task
 import java.util.concurrent.Executor
 
 /**
