@@ -32,6 +32,9 @@ object PreferenceUtils {
     fun isMultipleObjectsMode(context: Context): Boolean =
         getBooleanPref(context, R.string.pref_key_object_detector_enable_multiple_objects, false)
 
+    fun setMultipleObjectsMode(context: Context, v : Boolean ) =
+            PreferenceManager.getDefaultSharedPreferences(context).edit().putBoolean(context.getString(R.string.pref_key_object_detector_enable_multiple_objects), v).commit()
+
     fun isClassificationEnabled(context: Context): Boolean =
         getBooleanPref(context, R.string.pref_key_object_detector_enable_classification, false)
 

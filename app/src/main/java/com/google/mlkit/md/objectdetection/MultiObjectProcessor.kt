@@ -68,11 +68,13 @@ class MultiObjectProcessor(
                 .setAssetFilePath(customModelPath)
                 .build()
             options = CustomObjectDetectorOptions.Builder(localModel)
+                    .enableMultipleObjects()
                 .setDetectorMode(ObjectDetectorOptions.STREAM_MODE)
                 .enableClassification() // Always enable classification for custom models
                 .build()
         } else {
             val optionsBuilder = ObjectDetectorOptions.Builder()
+                    .enableMultipleObjects()
                 .setDetectorMode(ObjectDetectorOptions.STREAM_MODE)
             if (isClassificationEnabled) {
                 optionsBuilder.enableClassification()
@@ -124,6 +126,12 @@ class MultiObjectProcessor(
         var selectedObject: DetectedObjectInfo? = null
         for (i in objects.indices) {
             val result = objects[i]
+
+            fun l(labels: List<DetectedObject.Label>): String {
+                return labels.map { l -> "l"+l.index+":"+l.text+l.index }.toString()
+            }
+
+            Log.d("XXX", "XXX Res $i ${result.trackingId} ${result.boundingBox} lab=${l(result.labels)} ")
             if (selectedObject == null && shouldSelectObject(graphicOverlay, result)) {
                 selectedObject = DetectedObjectInfo(result, inputInfo)
                 // Starts the object confirmation once an object is regarded as selected.

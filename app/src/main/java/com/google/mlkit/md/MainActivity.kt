@@ -26,13 +26,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.mlkit.md.settings.PreferenceUtils
 
 /** Entry activity to select the detection mode.  */
 class MainActivity : AppCompatActivity() {
 
-    private enum class DetectionMode(val titleResId: Int, val subtitleResId: Int) {
-        ODT_LIVE(R.string.mode_odt_live_title, R.string.mode_odt_live_subtitle),
-        CUSTOM_MODEL_LIVE(R.string.custom_model_live_title, R.string.custom_model_live_subtitle)
+    private enum class DetectionMode(val titleResId: String, val subtitleResId: String, val multi: Boolean) {
+        ODT_LIVE1("Objectsøger - kun det dominerende objekt", "Interaktion med kasse om dominerende objekt", false),
+        ODT_LIVE2("Objectsøger - vis alle objekter", "Interaktion ved at ramme 'klatten' ved objekt", true),
+        CUSTOM_MODEL_LIVE("Fugle (kun den største)", "Interaktion med kasse om dominerende objekt", false),
+        CUSTOM_MODEL_LIVE2("Fugle - vis alle fugle", "Interaktion ved at ramme 'klatten' ved objekt", true),
     }
 
     override fun onCreate(bundle: Bundle?) {
@@ -81,10 +84,11 @@ class MainActivity : AppCompatActivity() {
                 subtitleView.setText(detectionMode.subtitleResId)
                 itemView.setOnClickListener {
                     val activity = this@MainActivity
+                    PreferenceUtils.setMultipleObjectsMode(activity, detectionMode.multi)
                     when (detectionMode) {
-                        DetectionMode.ODT_LIVE ->
+                        DetectionMode.ODT_LIVE1, DetectionMode.ODT_LIVE2 ->
                             activity.startActivity(Intent(activity, LiveObjectDetectionActivity::class.java))
-                        DetectionMode.CUSTOM_MODEL_LIVE ->
+                        DetectionMode.CUSTOM_MODEL_LIVE, DetectionMode.CUSTOM_MODEL_LIVE2 ->
                             activity.startActivity(Intent(activity, CustomModelObjectDetectionActivity::class.java))
                     }
                 }

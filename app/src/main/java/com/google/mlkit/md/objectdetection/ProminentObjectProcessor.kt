@@ -99,6 +99,15 @@ class ProminentObjectProcessor(
         if (!workflowModel.isCameraLive) {
             return
         }
+        for (i in objects.indices) {
+            val result = objects[i]
+
+            fun l(labels: List<DetectedObject.Label>): String {
+                return labels.map { l -> "l" + l.index + ":" + l.text + l.index }.toString()
+            }
+
+            Log.d("XXX", "XXX Res $i ${result.trackingId} ${result.boundingBox} lab=${l(result.labels)} ")
+        }
 
         if (PreferenceUtils.isClassificationEnabled(graphicOverlay.context)) {
             val qualifiedObjects = ArrayList<DetectedObject>()

@@ -22,11 +22,7 @@ import androidx.annotation.GuardedBy
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.TaskExecutors
-import com.google.mlkit.md.addOnFailureListener
-import com.google.mlkit.md.addOnSuccessListener
-import com.google.mlkit.md.CameraInputInfo
-import com.google.mlkit.md.InputInfo
-import com.google.mlkit.md.ScopedExecutor
+import com.google.mlkit.md.*
 import com.google.mlkit.vision.common.InputImage
 import java.nio.ByteBuffer
 
@@ -50,9 +46,9 @@ abstract class FrameProcessorBase<T> : FrameProcessor {
 
     @Synchronized
     override fun process(
-        data: ByteBuffer,
-        frameMetadata: FrameMetadata,
-        graphicOverlay: GraphicOverlay
+            data: ByteBuffer,
+            frameMetadata: FrameMetadata,
+            graphicOverlay: GraphicOverlay
     ) {
         latestFrame = data
         latestFrameMetaData = frameMetadata
@@ -70,16 +66,16 @@ abstract class FrameProcessorBase<T> : FrameProcessor {
         val frame = processingFrame ?: return
         val frameMetaData = processingFrameMetaData ?: return
         val image = InputImage.fromByteBuffer(
-            frame,
-            frameMetaData.width,
-            frameMetaData.height,
-            frameMetaData.rotation,
-            InputImage.IMAGE_FORMAT_NV21
+                frame,
+                frameMetaData.width,
+                frameMetaData.height,
+                frameMetaData.rotation,
+                InputImage.IMAGE_FORMAT_NV21
         )
         val startMs = SystemClock.elapsedRealtime()
         detectInImage(image)
             .addOnSuccessListener(executor) { results: T ->
-                Log.d(TAG, "Latency is: ${SystemClock.elapsedRealtime() - startMs}")
+                Log.d(TAG, "Latency is: ${SystemClock.elapsedRealtime() - startMs} " + results)
                 this@FrameProcessorBase.onSuccess(CameraInputInfo(frame, frameMetaData), results, graphicOverlay)
                 processLatestFrame(graphicOverlay)
             }
@@ -94,9 +90,9 @@ abstract class FrameProcessorBase<T> : FrameProcessor {
 
     /** Be called when the detection succeeds.  */
     protected abstract fun onSuccess(
-        inputInfo: InputInfo,
-        results: T,
-        graphicOverlay: GraphicOverlay
+            inputInfo: InputInfo,
+            results: T,
+            graphicOverlay: GraphicOverlay
     )
 
     protected abstract fun onFailure(e: Exception)

@@ -10,7 +10,7 @@
   <string name="cd_settings_button">Settings</string>
   <string name="cd_close_button">Back</string>
   <string name="cd_flash_button">Toggle camera flash</string>
-    <string name="prompt_point_at_an_object">Point your camera at an object</string>
+    <string name="prompt_point_at_an_object">Peg på et bilag med kameraet</string>
     <string name="prompt_point_at_a_bird">Point your camera at a bird</string>
   <string name="prompt_hold_camera_steady">Keep camera still for a moment</string>
     <string name="prompt_searching">Searching&#8230;</string>
