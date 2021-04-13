@@ -39,12 +39,6 @@
     </activity>
 
     <activity
-        android:name="com.google.mlkit.md.CustomModelObjectDetectionActivity"
-        android:exported="false"
-        android:screenOrientation="portrait">
-    </activity>
-
-    <activity
         android:name="com.google.mlkit.md.settings.SettingsActivity"
         android:exported="false"
         android:label="@string/settings_title"

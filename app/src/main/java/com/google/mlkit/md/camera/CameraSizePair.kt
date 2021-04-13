@@ -25,12 +25,11 @@ import com.google.android.gms.common.images.Size
  * ratio as the preview size or the preview may end up being distorted. If the picture size is null,
  * then there is no picture size with the same aspect ratio as the preview size.
  */
-class CameraSizePair {
-    val preview: Size
+class CameraSizePair(previewSize: Camera.Size, pictureSize: Camera.Size?) {
+    val preview: Size = Size(previewSize.width, previewSize.height)
     val picture: Size?
 
-    constructor(previewSize: Camera.Size, pictureSize: Camera.Size?) {
-        preview = Size(previewSize.width, previewSize.height)
+    init {
         picture = pictureSize?.let { Size(it.width, it.height) }
     }
 

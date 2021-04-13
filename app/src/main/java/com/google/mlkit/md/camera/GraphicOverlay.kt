@@ -23,7 +23,8 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import com.google.mlkit.md.Utils
-import java.util.ArrayList
+import com.google.mlkit.md.camera.GraphicOverlay.Graphic
+import java.util.*
 
 /**
  * A view which renders a series of custom graphics to be overlaid on top of an associated preview
@@ -90,8 +91,8 @@ class GraphicOverlay(context: Context, attrs: AttributeSet) : View(context, attr
         }
     }
 
-    fun translateX(x: Float): Float = x * widthScaleFactor
-    fun translateY(y: Float): Float = y * heightScaleFactor
+    private fun translateX(x: Float): Float = x * widthScaleFactor
+    private fun translateY(y: Float): Float = y * heightScaleFactor
 
     /**
      * Adjusts the `rect`'s coordinate from the preview's coordinate system to the view

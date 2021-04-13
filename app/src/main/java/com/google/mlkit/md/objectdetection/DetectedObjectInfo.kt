@@ -38,7 +38,6 @@ class DetectedObjectInfo(
 
     val objectId: Int? = detectedObject.trackingId
     val boundingBox: Rect = detectedObject.boundingBox
-    val labels: List<DetectedObject.Label> = detectedObject.labels
 
     @Suppress("unused")
     val imageData: ByteArray?

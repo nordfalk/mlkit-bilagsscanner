@@ -3,12 +3,6 @@
   <dimen name="home_page_title_size">18sp</dimen>
   <dimen name="home_page_title_padding_top">32dp</dimen>
   <dimen name="home_page_title_padding_bottom">16dp</dimen>
-  <dimen name="home_page_mode_item_padding_horizontal">24dp</dimen>
-  <dimen name="home_page_mode_item_title_size">16sp</dimen>
-  <dimen name="home_page_mode_item_title_padding_top">16dp</dimen>
-  <dimen name="home_page_mode_item_title_padding_bottom">8dp</dimen>
-  <dimen name="home_page_mode_item_subtitle_size">14sp</dimen>
-  <dimen name="home_page_mode_item_subtitle_padding_bottom">24dp</dimen>
   <dimen name="top_action_bar_padding_horizontal">8dp</dimen>
   <dimen name="top_action_bar_height">64dp</dimen>
   <dimen name="top_action_button_padding">12dp</dimen>
@@ -35,7 +29,6 @@
   <dimen name="object_reticle_outer_ring_stroke_width">4dp</dimen>
   <dimen name="object_reticle_inner_ring_stroke_radius">14dp</dimen>
   <dimen name="object_reticle_inner_ring_stroke_width">2dp</dimen>
-  <dimen name="object_dot_radius">@dimen/object_reticle_inner_ring_stroke_radius</dimen>
   <dimen name="object_thumbnail_height">120dp</dimen>
   <dimen name="object_thumbnail_margin">24dp</dimen>
   <dimen name="object_thumbnail_stroke_width">@dimen/bounding_box_confirmed_stroke_width</dimen>

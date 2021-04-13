@@ -20,7 +20,6 @@ import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.hardware.Camera
 import android.os.Bundle
 import android.util.Log
@@ -331,55 +330,6 @@ class LiveObjectDetectionActivity : AppCompatActivity(), OnClickListener {
         val shouldPlayPromptChipEnteringAnimation = wasPromptChipGone && promptChip?.visibility == View.VISIBLE
         if (shouldPlayPromptChipEnteringAnimation && promptChipAnimator?.isRunning == false) {
             promptChipAnimator?.start()
-        }
-    }
-
-    private fun stateChangeInManualSearchMode(workflowState: WorkflowState) {
-        val wasPromptChipGone = promptChip?.visibility == View.GONE
-        val wasSearchButtonGone = searchButton?.visibility == View.GONE
-
-        searchProgressBar?.visibility = View.GONE
-        when (workflowState) {
-            WorkflowState.DETECTING, WorkflowState.DETECTED, WorkflowState.CONFIRMING -> {
-                promptChip?.visibility = View.VISIBLE
-                promptChip?.setText(R.string.prompt_point_at_an_object)
-                searchButton?.visibility = View.GONE
-                startCameraPreview()
-            }
-            WorkflowState.CONFIRMED -> {
-                promptChip?.visibility = View.GONE
-                searchButton?.visibility = View.VISIBLE
-                searchButton?.isEnabled = true
-                searchButton?.setBackgroundColor(Color.WHITE)
-                startCameraPreview()
-            }
-            WorkflowState.SEARCHING -> {
-                promptChip?.visibility = View.GONE
-                searchButton?.visibility = View.VISIBLE
-                searchButton?.isEnabled = false
-                searchButton?.setBackgroundColor(Color.GRAY)
-                searchProgressBar!!.visibility = View.VISIBLE
-                stopCameraPreview()
-            }
-            WorkflowState.SEARCHED -> {
-                promptChip?.visibility = View.GONE
-                searchButton?.visibility = View.GONE
-                stopCameraPreview()
-            }
-            else -> {
-                promptChip?.visibility = View.GONE
-                searchButton?.visibility = View.GONE
-            }
-        }
-
-        val shouldPlayPromptChipEnteringAnimation = wasPromptChipGone && promptChip?.visibility == View.VISIBLE
-        promptChipAnimator?.let {
-            if (shouldPlayPromptChipEnteringAnimation && !it.isRunning) it.start()
-        }
-
-        val shouldPlaySearchButtonEnteringAnimation = wasSearchButtonGone && searchButton?.visibility == View.VISIBLE
-        searchButtonAnimator?.let {
-            if (shouldPlaySearchButtonEnteringAnimation && !it.isRunning) it.start()
         }
     }
 

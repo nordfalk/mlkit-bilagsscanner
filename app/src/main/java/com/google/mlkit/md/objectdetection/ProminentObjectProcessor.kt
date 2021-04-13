@@ -20,7 +20,6 @@ import android.graphics.RectF
 import android.util.Log
 import androidx.annotation.MainThread
 import com.google.android.gms.tasks.Task
-import com.google.mlkit.common.model.LocalModel
 import com.google.mlkit.md.InputInfo
 import com.google.mlkit.md.R
 import com.google.mlkit.md.camera.CameraReticleAnimator
@@ -34,7 +33,6 @@ import com.google.mlkit.vision.objects.DetectedObject
 import com.google.mlkit.vision.objects.ObjectDetection
 import com.google.mlkit.vision.objects.ObjectDetector
 import com.google.mlkit.vision.objects.ObjectDetectorOptionsBase
-import com.google.mlkit.vision.objects.custom.CustomObjectDetectorOptions
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
 import java.io.IOException
 import java.util.*
@@ -56,6 +54,7 @@ class ProminentObjectProcessor(
     init {
         val options: ObjectDetectorOptionsBase
         val isClassificationEnabled = PreferenceUtils.isClassificationEnabled(graphicOverlay.context)
+        /*
         if (customModelPath != null) {
             val localModel = LocalModel.Builder()
                 .setAssetFilePath(customModelPath)
@@ -65,13 +64,14 @@ class ProminentObjectProcessor(
                 .enableClassification() // Always enable classification for custom models
                 .build()
         } else {
+         */
             val optionsBuilder = ObjectDetectorOptions.Builder()
                     .setDetectorMode(ObjectDetectorOptions.STREAM_MODE)
             if (isClassificationEnabled) {
                 optionsBuilder.enableClassification()
             }
             options = optionsBuilder.build()
-        }
+        //}
 
         this.detector = ObjectDetection.getClient(options)
     }
