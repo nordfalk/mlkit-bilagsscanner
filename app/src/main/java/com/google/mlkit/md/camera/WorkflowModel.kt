@@ -24,7 +24,6 @@ import androidx.lifecycle.MutableLiveData
 import com.google.mlkit.md.objectdetection.DetectedObjectInfo
 import com.google.mlkit.md.productsearch.Product
 import com.google.mlkit.md.productsearch.SearchedObject
-import com.google.mlkit.md.settings.PreferenceUtils
 import java.util.*
 
 /** View model for handling application workflow based on camera preview.  */
@@ -73,12 +72,8 @@ class WorkflowModel(application: Application) : AndroidViewModel(application) {
         val isConfirmed = progress.compareTo(1f) == 0
         if (isConfirmed) {
             confirmedObject = confirmingObject
-            if (PreferenceUtils.isAutoSearchEnabled(context)) {
-                setWorkflowState(WorkflowState.SEARCHING)
-                triggerSearch(confirmingObject)
-            } else {
-                setWorkflowState(WorkflowState.CONFIRMED)
-            }
+            setWorkflowState(WorkflowState.SEARCHING)
+            triggerSearch(confirmingObject)
         } else {
             setWorkflowState(WorkflowState.CONFIRMING)
         }

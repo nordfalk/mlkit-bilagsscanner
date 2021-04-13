@@ -22,10 +22,9 @@ import android.graphics.Paint.Cap
 import android.graphics.Paint.Style
 import android.graphics.RectF
 import androidx.core.content.ContextCompat
+import com.google.mlkit.md.R
 import com.google.mlkit.md.camera.GraphicOverlay
 import com.google.mlkit.md.camera.GraphicOverlay.Graphic
-import com.google.mlkit.md.R
-import com.google.mlkit.md.settings.PreferenceUtils
 
 /**
  * Similar to the camera reticle but with additional progress ring to indicate an object is getting
@@ -67,16 +66,11 @@ class ObjectConfirmationGraphic internal constructor(
         }
 
         innerRingPaint = Paint()
-        if (PreferenceUtils.isMultipleObjectsMode(overlay.context)) {
-            innerRingPaint.style = Style.FILL
-            innerRingPaint.color = ContextCompat.getColor(context, R.color.object_reticle_inner_ring)
-        } else {
-            innerRingPaint.style = Style.STROKE
-            innerRingPaint.strokeWidth =
-                resources.getDimensionPixelOffset(R.dimen.object_reticle_inner_ring_stroke_width).toFloat()
-            innerRingPaint.strokeCap = Cap.ROUND
-            innerRingPaint.color = ContextCompat.getColor(context, R.color.white)
-        }
+        innerRingPaint.style = Style.STROKE
+        innerRingPaint.strokeWidth =
+            resources.getDimensionPixelOffset(R.dimen.object_reticle_inner_ring_stroke_width).toFloat()
+        innerRingPaint.strokeCap = Cap.ROUND
+        innerRingPaint.color = ContextCompat.getColor(context, R.color.white)
 
         outerRingFillRadius = resources.getDimensionPixelOffset(R.dimen.object_reticle_outer_ring_fill_radius)
         outerRingStrokeRadius = resources.getDimensionPixelOffset(R.dimen.object_reticle_outer_ring_stroke_radius)

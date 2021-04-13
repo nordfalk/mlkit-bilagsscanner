@@ -149,8 +149,7 @@ class ProminentObjectProcessor(
                                 graphicOverlay, objects[0], confirmationController
                         )
                 )
-                if (!confirmationController.isConfirmed &&
-                    PreferenceUtils.isAutoSearchEnabled(graphicOverlay.context)) {
+                if (!confirmationController.isConfirmed) {
                     // Shows a loading indicator to visualize the confirming progress if in auto search mode.
                     graphicOverlay.add(ObjectConfirmationGraphic(graphicOverlay, confirmationController))
                 }

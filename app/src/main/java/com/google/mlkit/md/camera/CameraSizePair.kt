@@ -34,8 +34,4 @@ class CameraSizePair {
         picture = pictureSize?.let { Size(it.width, it.height) }
     }
 
-    constructor(previewSize: Size, pictureSize: Size?) {
-        preview = previewSize
-        picture = pictureSize
-    }
 }
