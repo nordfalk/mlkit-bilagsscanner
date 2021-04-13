@@ -20,7 +20,16 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Matrix
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.Rect
+import android.graphics.RectF
+import android.graphics.YuvImage
 import android.hardware.Camera
 import android.util.Log
 import androidx.core.app.ActivityCompat
@@ -118,6 +127,7 @@ object Utils {
         return validPreviewSizes
     }
 
+    @Suppress("unused")
     fun getCornerRoundedBitmap(srcBitmap: Bitmap, cornerRadius: Int): Bitmap {
         val dstBitmap = Bitmap.createBitmap(srcBitmap.width, srcBitmap.height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(dstBitmap)

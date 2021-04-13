@@ -18,7 +18,6 @@ package com.google.mlkit.md.objectdetection
 
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
-import android.graphics.Rect
 import android.util.Log
 import com.google.mlkit.md.InputInfo
 import com.google.mlkit.vision.objects.DetectedObject
@@ -29,15 +28,16 @@ import java.io.IOException
  * Holds the detected object and its related image info.
  */
 class DetectedObjectInfo(
-    private val detectedObject: DetectedObject,
-    private val inputInfo: InputInfo
+    val detectedObject: DetectedObject,
+    val inputInfo: InputInfo
 ) {
 
     private var bitmap: Bitmap? = null
     private var jpegBytes: ByteArray? = null
 
-    val objectId: Int? = detectedObject.trackingId
-    val boundingBox: Rect = detectedObject.boundingBox
+    override fun toString(): String {
+        return "" + detectedObject.boundingBox  + " " +  detectedObject.labels + " " + inputInfo.getBitmap().width + "x" + inputInfo.getBitmap().height
+    }
 
     @Suppress("unused")
     val imageData: ByteArray?
@@ -77,11 +77,5 @@ class DetectedObjectInfo(
     companion object {
         private const val TAG = "DetectedObject"
         private const val MAX_IMAGE_WIDTH = 640
-        private const val INVALID_LABEL = "N/A"
-
-        fun hasValidLabels(detectedObject: DetectedObject): Boolean {
-            return detectedObject.labels.isNotEmpty() &&
-                    detectedObject.labels.none { label -> label.text == INVALID_LABEL }
-        }
     }
 }

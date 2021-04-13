@@ -18,34 +18,26 @@ package com.google.mlkit.md
 
 import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
+import android.app.AlertDialog
 import android.content.Intent
-import android.graphics.Bitmap
 import android.hardware.Camera
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.View.OnClickListener
+import android.widget.ImageView
 import android.widget.ProgressBar
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.chip.Chip
-import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.common.base.Objects
-import com.google.common.collect.ImmutableList
 import com.google.mlkit.md.camera.CameraSource
 import com.google.mlkit.md.camera.CameraSourcePreview
 import com.google.mlkit.md.camera.GraphicOverlay
 import com.google.mlkit.md.camera.WorkflowModel
 import com.google.mlkit.md.camera.WorkflowModel.WorkflowState
 import com.google.mlkit.md.objectdetection.ProminentObjectProcessor
-import com.google.mlkit.md.productsearch.BottomSheetScrimView
-import com.google.mlkit.md.productsearch.Product
-import com.google.mlkit.md.productsearch.ProductAdapter
 import com.google.mlkit.md.settings.SettingsActivity
 import java.io.IOException
 
@@ -59,18 +51,9 @@ class LiveObjectDetectionActivity : AppCompatActivity(), OnClickListener {
     private var flashButton: View? = null
     private var promptChip: Chip? = null
     private var promptChipAnimator: AnimatorSet? = null
-    private var searchButton: ExtendedFloatingActionButton? = null
-    private var searchButtonAnimator: AnimatorSet? = null
     private var searchProgressBar: ProgressBar? = null
     private var workflowModel: WorkflowModel? = null
     private var currentWorkflowState: WorkflowState? = null
-
-    private var bottomSheetBehavior: BottomSheetBehavior<View>? = null
-    private var bottomSheetScrimView: BottomSheetScrimView? = null
-    private var productRecyclerView: RecyclerView? = null
-    private var bottomSheetTitleView: TextView? = null
-    private var objectThumbnailForBottomSheet: Bitmap? = null
-    private var slidingSheetUpFromHiddenState: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,15 +70,7 @@ class LiveObjectDetectionActivity : AppCompatActivity(), OnClickListener {
             (AnimatorInflater.loadAnimator(this, R.animator.bottom_prompt_chip_enter) as AnimatorSet).apply {
                 setTarget(promptChip)
             }
-        searchButton = findViewById<ExtendedFloatingActionButton>(R.id.product_search_button).apply {
-            setOnClickListener(this@LiveObjectDetectionActivity)
-        }
-        searchButtonAnimator =
-            (AnimatorInflater.loadAnimator(this, R.animator.search_button_enter) as AnimatorSet).apply {
-                setTarget(searchButton)
-            }
         searchProgressBar = findViewById(R.id.search_progress_bar)
-        setUpBottomSheet()
         findViewById<View>(R.id.close_button).setOnClickListener(this)
         flashButton = findViewById<View>(R.id.flash_button).apply {
             setOnClickListener(this@LiveObjectDetectionActivity)
@@ -111,10 +86,9 @@ class LiveObjectDetectionActivity : AppCompatActivity(), OnClickListener {
 
         workflowModel?.markCameraFrozen()
         settingsButton?.isEnabled = true
-        bottomSheetBehavior?.state = BottomSheetBehavior.STATE_HIDDEN
         currentWorkflowState = WorkflowState.NOT_STARTED
         cameraSource?.setFrameProcessor(
-            ProminentObjectProcessor(graphicOverlay!!, workflowModel!!)
+                ProminentObjectProcessor(graphicOverlay!!, workflowModel!!)
         )
         workflowModel?.setWorkflowState(WorkflowState.DETECTING)
     }
@@ -131,21 +105,8 @@ class LiveObjectDetectionActivity : AppCompatActivity(), OnClickListener {
         cameraSource = null
     }
 
-    override fun onBackPressed() {
-        if (bottomSheetBehavior?.state != BottomSheetBehavior.STATE_HIDDEN) {
-            bottomSheetBehavior?.setState(BottomSheetBehavior.STATE_HIDDEN)
-        } else {
-            super.onBackPressed()
-        }
-    }
-
     override fun onClick(view: View) {
         when (view.id) {
-            R.id.product_search_button -> {
-                searchButton?.isEnabled = false
-                workflowModel?.onSearchButtonClicked()
-            }
-            R.id.bottom_sheet_scrim_view -> bottomSheetBehavior?.setState(BottomSheetBehavior.STATE_HIDDEN)
             R.id.close_button -> onBackPressed()
             R.id.flash_button -> {
                 if (flashButton?.isSelected == true) {
@@ -186,63 +147,6 @@ class LiveObjectDetectionActivity : AppCompatActivity(), OnClickListener {
         }
     }
 
-    private fun setUpBottomSheet() {
-        bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottom_sheet))
-        bottomSheetBehavior?.setBottomSheetCallback(
-            object : BottomSheetBehavior.BottomSheetCallback() {
-                override fun onStateChanged(bottomSheet: View, newState: Int) {
-                    Log.d(TAG, "Bottom sheet new state: $newState")
-                    bottomSheetScrimView?.visibility =
-                        if (newState == BottomSheetBehavior.STATE_HIDDEN) View.GONE else View.VISIBLE
-                    graphicOverlay?.clear()
-
-                    when (newState) {
-                        BottomSheetBehavior.STATE_HIDDEN -> workflowModel?.setWorkflowState(WorkflowState.DETECTING)
-                        BottomSheetBehavior.STATE_COLLAPSED,
-                        BottomSheetBehavior.STATE_EXPANDED,
-                        BottomSheetBehavior.STATE_HALF_EXPANDED -> slidingSheetUpFromHiddenState = false
-                        BottomSheetBehavior.STATE_DRAGGING, BottomSheetBehavior.STATE_SETTLING -> {
-                        }
-                    }
-                }
-
-                override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                    val searchedObject = workflowModel!!.searchedObject.value
-                    if (searchedObject == null || java.lang.Float.isNaN(slideOffset)) {
-                        return
-                    }
-
-                    val graphicOverlay = graphicOverlay ?: return
-                    val bottomSheetBehavior = bottomSheetBehavior ?: return
-                    val collapsedStateHeight = bottomSheetBehavior.peekHeight.coerceAtMost(bottomSheet.height)
-                    val bottomBitmap = objectThumbnailForBottomSheet ?: return
-                    if (slidingSheetUpFromHiddenState) {
-                        val thumbnailSrcRect = graphicOverlay.translateRect(searchedObject.boundingBox)
-                        bottomSheetScrimView?.updateWithThumbnailTranslateAndScale(
-                            bottomBitmap,
-                            collapsedStateHeight,
-                            slideOffset,
-                            thumbnailSrcRect
-                        )
-                    } else {
-                        bottomSheetScrimView?.updateWithThumbnailTranslate(
-                            bottomBitmap, collapsedStateHeight, slideOffset, bottomSheet
-                        )
-                    }
-                }
-            })
-
-        bottomSheetScrimView = findViewById<BottomSheetScrimView>(R.id.bottom_sheet_scrim_view).apply {
-            setOnClickListener(this@LiveObjectDetectionActivity)
-        }
-
-        bottomSheetTitleView = findViewById(R.id.bottom_sheet_title)
-        productRecyclerView = findViewById<RecyclerView>(R.id.product_recycler_view).apply {
-            setHasFixedSize(true)
-            layoutManager = LinearLayoutManager(this@LiveObjectDetectionActivity)
-            adapter = ProductAdapter(ImmutableList.of())
-        }
-    }
 
     private fun setUpWorkflowModel() {
         workflowModel = ViewModelProviders.of(this).get(WorkflowModel::class.java).apply {
@@ -259,36 +163,31 @@ class LiveObjectDetectionActivity : AppCompatActivity(), OnClickListener {
                 stateChangeInAutoSearchMode(workflowState)
             })
 
-            /*
-            objectToSearch.observe(this@LiveObjectDetectionActivity, Observer { detectObject ->
-                searchEngine!!.search(detectObject) { detectedObject, products ->
-                    workflowModel?.onSearchCompleted(detectedObject, products)
-                }
-            })
-             */
-            // Observes changes on the object to search, if happens, fire product search request.
-            objectToSearch.observe(this@LiveObjectDetectionActivity, Observer { detectObject ->
-                val productList = ArrayList<Product>()
-                productList.add(Product("" /* imageUrl */, ""+detectObject.objectId, ""+detectObject.boundingBox /* subtitle */))
-                workflowModel?.onSearchCompleted(detectObject, productList)
-            })
-
 
             // Observes changes on the object that has search completed, if happens, show the bottom sheet
             // to present search result.
             searchedObject.observe(this@LiveObjectDetectionActivity, Observer { nullableSearchedObject ->
                 val searchedObject = nullableSearchedObject ?: return@Observer
-                val productList = searchedObject.productList
-                objectThumbnailForBottomSheet = searchedObject.getObjectThumbnail()
-                bottomSheetTitleView?.text = resources
-                    .getQuantityString(
-                        R.plurals.bottom_sheet_title, productList.size, productList.size
-                    )
-                productRecyclerView?.adapter = ProductAdapter(productList)
-                slidingSheetUpFromHiddenState = true
-                bottomSheetBehavior?.peekHeight =
-                    preview?.height?.div(2) ?: BottomSheetBehavior.PEEK_HEIGHT_AUTO
-                bottomSheetBehavior?.state = BottomSheetBehavior.STATE_COLLAPSED
+/*
+    fun getObjectThumbnail(): Bitmap = objectThumbnail ?: let {
+        Utils.getCornerRoundedBitmap(detectedObject.getBitmap(), objectThumbnailCornerRadius)
+            .also { objectThumbnail = it }
+    }
+ */
+
+
+                //objectThumbnailForBottomSheet = searchedObject.getObjectThumbnail()
+                Log.d("XXX", "XXXX FUNDET! "+searchedObject.toString())
+                val im = ImageView(applicationContext)
+                im.setImageBitmap(searchedObject.getBitmap())
+
+                AlertDialog.Builder(this@LiveObjectDetectionActivity)
+                        .setTitle("Fundet objekt")
+                        .setView(im)
+                        .setOnDismissListener {
+                            workflowModel?.setWorkflowState(WorkflowState.DETECTING)
+                        }
+                        .show()
             })
         }
     }
@@ -296,23 +195,17 @@ class LiveObjectDetectionActivity : AppCompatActivity(), OnClickListener {
     private fun stateChangeInAutoSearchMode(workflowState: WorkflowState) {
         val wasPromptChipGone = promptChip!!.visibility == View.GONE
 
-        searchButton?.visibility = View.GONE
         searchProgressBar?.visibility = View.GONE
         when (workflowState) {
             WorkflowState.DETECTING, WorkflowState.DETECTED, WorkflowState.CONFIRMING -> {
                 promptChip?.visibility = View.VISIBLE
                 promptChip?.setText(
-                    if (workflowState == WorkflowState.CONFIRMING)
-                        R.string.prompt_hold_camera_steady
-                    else
-                        R.string.prompt_point_at_an_object
+                        if (workflowState == WorkflowState.CONFIRMING)
+                            R.string.prompt_hold_camera_steady
+                        else
+                            R.string.prompt_point_at_an_object
                 )
                 startCameraPreview()
-            }
-            WorkflowState.CONFIRMED -> {
-                promptChip?.visibility = View.VISIBLE
-                promptChip?.setText(R.string.prompt_searching)
-                stopCameraPreview()
             }
             WorkflowState.SEARCHING -> {
                 searchProgressBar?.visibility = View.VISIBLE

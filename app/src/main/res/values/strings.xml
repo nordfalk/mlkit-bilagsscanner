@@ -9,11 +9,6 @@
     <string name="prompt_point_at_an_object">Peg på et bilag med kameraet</string>
   <string name="prompt_hold_camera_steady">Keep camera still for a moment</string>
     <string name="prompt_searching">Searching&#8230;</string>
-  <string name="product_search_button">Search object</string>
-  <plurals name="bottom_sheet_title">
-    <item quantity="one">%d match found</item>
-    <item quantity="other">%d matches found</item>
-  </plurals>
 
   <!-- Strings for object detection settings. -->
   <string name="pref_category_object_detection">Object detection</string>

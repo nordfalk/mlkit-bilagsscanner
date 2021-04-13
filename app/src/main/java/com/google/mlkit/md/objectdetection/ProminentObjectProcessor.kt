@@ -39,9 +39,8 @@ import java.util.*
 
 /** A processor to run object detector in prominent object only mode.  */
 class ProminentObjectProcessor(
-  graphicOverlay: GraphicOverlay,
-  private val workflowModel: WorkflowModel,
-  private val customModelPath: String? = null) :
+        graphicOverlay: GraphicOverlay,
+        private val workflowModel: WorkflowModel) :
     FrameProcessorBase<List<DetectedObject>>() {
 
     private val detector: ObjectDetector
@@ -116,8 +115,7 @@ class ProminentObjectProcessor(
         }
 
         val objectIndex = 0
-        val hasValidObjects = objects.isNotEmpty() &&
-            (customModelPath == null || DetectedObjectInfo.hasValidLabels(objects[objectIndex]))
+        val hasValidObjects = objects.isNotEmpty()
         if (!hasValidObjects) {
             confirmationController.reset()
             workflowModel.setWorkflowState(WorkflowState.DETECTING)

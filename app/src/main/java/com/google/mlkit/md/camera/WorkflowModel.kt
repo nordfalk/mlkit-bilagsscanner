@@ -17,21 +17,17 @@
 package com.google.mlkit.md.camera
 
 import android.app.Application
-import android.content.Context
 import androidx.annotation.MainThread
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.google.mlkit.md.objectdetection.DetectedObjectInfo
-import com.google.mlkit.md.productsearch.Product
-import com.google.mlkit.md.productsearch.SearchedObject
 import java.util.*
 
 /** View model for handling application workflow based on camera preview.  */
 class WorkflowModel(application: Application) : AndroidViewModel(application) {
 
     val workflowState = MutableLiveData<WorkflowState>()
-    val objectToSearch = MutableLiveData<DetectedObjectInfo>()
-    val searchedObject = MutableLiveData<SearchedObject>()
+    val searchedObject = MutableLiveData<DetectedObjectInfo>()
 
     private val objectIdsToSearch = HashSet<Int>()
 
@@ -39,9 +35,6 @@ class WorkflowModel(application: Application) : AndroidViewModel(application) {
         private set
 
     private var confirmedObject: DetectedObjectInfo? = null
-
-    private val context: Context
-        get() = getApplication<Application>().applicationContext
 
     /**
      * State set of the application workflow.
@@ -51,15 +44,13 @@ class WorkflowModel(application: Application) : AndroidViewModel(application) {
         DETECTING,
         DETECTED,
         CONFIRMING,
-        CONFIRMED,
         SEARCHING,
         SEARCHED
     }
 
     @MainThread
     fun setWorkflowState(workflowState: WorkflowState) {
-        if (workflowState != WorkflowState.CONFIRMED &&
-            workflowState != WorkflowState.SEARCHING &&
+        if (workflowState != WorkflowState.SEARCHING &&
             workflowState != WorkflowState.SEARCHED
         ) {
             confirmedObject = null
@@ -79,23 +70,15 @@ class WorkflowModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    @MainThread
-    fun onSearchButtonClicked() {
-        confirmedObject?.let {
-            setWorkflowState(WorkflowState.SEARCHING)
-            triggerSearch(it)
-        }
-    }
-
     private fun triggerSearch(detectedObject: DetectedObjectInfo) {
-        val objectId = detectedObject.objectId ?: throw NullPointerException()
+        val objectId = detectedObject.detectedObject.trackingId ?: throw NullPointerException()
         if (objectIdsToSearch.contains(objectId)) {
             // Already in searching.
             return
         }
 
         objectIdsToSearch.add(objectId)
-        objectToSearch.value = detectedObject
+        onSearchCompleted(detectedObject)
     }
 
     fun markCameraLive() {
@@ -107,16 +90,16 @@ class WorkflowModel(application: Application) : AndroidViewModel(application) {
         isCameraLive = false
     }
 
-    fun onSearchCompleted(detectedObject: DetectedObjectInfo, products: List<Product>) {
+    fun onSearchCompleted(detectedObject: DetectedObjectInfo) {
         val lConfirmedObject = confirmedObject
         if (detectedObject != lConfirmedObject) {
             // Drops the search result from the object that has lost focus.
             return
         }
 
-        objectIdsToSearch.remove(detectedObject.objectId)
+        objectIdsToSearch.remove(detectedObject.detectedObject.trackingId)
         setWorkflowState(WorkflowState.SEARCHED)
 
-        searchedObject.value = SearchedObject(context.resources, lConfirmedObject, products)
+        searchedObject.value = lConfirmedObject
     }
 }
