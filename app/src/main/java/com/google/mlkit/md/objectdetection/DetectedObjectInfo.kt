@@ -31,8 +31,6 @@ class DetectedObjectInfo(
     val detectedObject: DetectedObject,
     val inputInfo: CameraInputInfo
 ) {
-
-    private var bitmap: Bitmap? = null
     private var jpegBytes: ByteArray? = null
 
     override fun toString(): String {
@@ -57,21 +55,20 @@ class DetectedObjectInfo(
 
     @Synchronized
     fun getBitmap(): Bitmap {
-        return bitmap ?: let {
-            val boundingBox = detectedObject.boundingBox
-            val createdBitmap = Bitmap.createBitmap(
+
+        val boundingBox = detectedObject.boundingBox
+        var createdBitmap = Bitmap.createBitmap(
                 inputInfo.getBitmap(),
                 boundingBox.left,
                 boundingBox.top,
                 boundingBox.width(),
                 boundingBox.height()
-            )
-            if (createdBitmap.width > MAX_IMAGE_WIDTH) {
-                val dstHeight = (MAX_IMAGE_WIDTH.toFloat() / createdBitmap.width * createdBitmap.height).toInt()
-                bitmap = Bitmap.createScaledBitmap(createdBitmap, MAX_IMAGE_WIDTH, dstHeight, /* filter= */ false)
-            }
-            createdBitmap
+        )
+        if (createdBitmap.width > MAX_IMAGE_WIDTH) {
+            val dstHeight = (MAX_IMAGE_WIDTH.toFloat() / createdBitmap.width * createdBitmap.height).toInt()
+            return Bitmap.createScaledBitmap(createdBitmap, MAX_IMAGE_WIDTH, dstHeight, /* filter= */ false)
         }
+        return createdBitmap
     }
 
     companion object {

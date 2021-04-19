@@ -157,7 +157,14 @@ class ProminentObjectFrameProcessor(
             graphicOverlay.add(ObjectReticleGraphic(graphicOverlay, cameraReticleAnimator))
             cameraReticleAnimator.start()
         } else {
-            val objectIndex = 0
+            var objectIndex = 0
+            for (oi in results.indices) {
+                if (goodResult(inputInfo, results[oi])) {
+                    objectIndex = oi
+                    break
+                }
+            }
+
             if (objectBoxOverlapsConfirmationReticle(graphicOverlay, results[objectIndex])) {
                 val result = results[objectIndex]
                 // User is confirming the object selection.
@@ -166,7 +173,6 @@ class ProminentObjectFrameProcessor(
 
                 // User is confirming the object selection.
                 cameraReticleAnimator.cancel()
-                //for (objectIndex in results.indices)
                 graphicOverlay.add(ObjectGraphicInProminentMode(graphicOverlay, results[objectIndex], confirmationController))
                 if (!confirmationController.isConfirmed) {
                     // Shows a loading indicator to visualize the confirming progress if in auto search mode.
@@ -185,6 +191,18 @@ class ProminentObjectFrameProcessor(
             }
         }
         graphicOverlay.invalidate()
+    }
+
+    val good = HashMap<Int, Boolean>()
+    private fun goodResult(inputInfo: CameraInputInfo, result: DetectedObject): Boolean {
+
+        //DetectedObjectInfo(result, inputInfo).getBitmap()
+
+        val res = good.get(result.trackingId)
+        if (res!=null) return res
+
+
+        return true
     }
 
     private fun objectBoxOverlapsConfirmationReticle(

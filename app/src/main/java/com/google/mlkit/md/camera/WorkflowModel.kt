@@ -91,8 +91,7 @@ class WorkflowModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun onSearchCompleted(detectedObject: DetectedObjectInfo) {
-        val lConfirmedObject = confirmedObject
-        if (detectedObject != lConfirmedObject) {
+        if (detectedObject != confirmedObject) {
             // Drops the search result from the object that has lost focus.
             return
         }
@@ -100,6 +99,6 @@ class WorkflowModel(application: Application) : AndroidViewModel(application) {
         objectIdsToSearch.remove(detectedObject.detectedObject.trackingId)
         setWorkflowState(WorkflowState.SEARCHED)
 
-        searchedObject.value = lConfirmedObject
+        searchedObject.value = confirmedObject
     }
 }
