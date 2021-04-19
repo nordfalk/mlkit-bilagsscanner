@@ -32,12 +32,11 @@ class MainActivity : AppCompatActivity() {
         startButton.setOnClickListener {
             startActivity(Intent(this, LiveObjectDetectionActivity::class.java))
         }
-    }
 
-    override fun onResume() {
-        super.onResume()
         if (!Utils.allPermissionsGranted(this)) {
             Utils.requestRuntimePermissions(this)
+        } else {
+            startActivity(Intent(this, LiveObjectDetectionActivity::class.java))
         }
     }
 }

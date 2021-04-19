@@ -37,7 +37,7 @@ import com.google.mlkit.md.camera.CameraSourcePreview
 import com.google.mlkit.md.camera.GraphicOverlay
 import com.google.mlkit.md.camera.WorkflowModel
 import com.google.mlkit.md.camera.WorkflowModel.WorkflowState
-import com.google.mlkit.md.objectdetection.ProminentObjectProcessor
+import com.google.mlkit.md.objectdetection.ProminentObjectFrameProcessor
 import com.google.mlkit.md.settings.SettingsActivity
 import java.io.IOException
 
@@ -88,7 +88,7 @@ class LiveObjectDetectionActivity : AppCompatActivity(), OnClickListener {
         settingsButton?.isEnabled = true
         currentWorkflowState = WorkflowState.NOT_STARTED
         cameraSource?.setFrameProcessor(
-                ProminentObjectProcessor(graphicOverlay!!, workflowModel!!)
+                ProminentObjectFrameProcessor(graphicOverlay!!, workflowModel!!)
         )
         workflowModel?.setWorkflowState(WorkflowState.DETECTING)
     }

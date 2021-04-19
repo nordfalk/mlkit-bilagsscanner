@@ -17,15 +17,14 @@
 package com.google.mlkit.md.objectdetection
 
 import android.graphics.RectF
+import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.MainThread
+import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.Task
-import com.google.mlkit.md.InputInfo
-import com.google.mlkit.md.R
-import com.google.mlkit.md.camera.CameraReticleAnimator
-import com.google.mlkit.md.camera.FrameProcessorBase
-import com.google.mlkit.md.camera.GraphicOverlay
-import com.google.mlkit.md.camera.WorkflowModel
+import com.google.android.gms.tasks.TaskExecutors
+import com.google.mlkit.md.*
+import com.google.mlkit.md.camera.*
 import com.google.mlkit.md.camera.WorkflowModel.WorkflowState
 import com.google.mlkit.md.settings.PreferenceUtils
 import com.google.mlkit.vision.common.InputImage
@@ -35,13 +34,67 @@ import com.google.mlkit.vision.objects.ObjectDetector
 import com.google.mlkit.vision.objects.ObjectDetectorOptionsBase
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
 import java.io.IOException
+import java.nio.ByteBuffer
 import java.util.*
 
 /** A processor to run object detector in prominent object only mode.  */
-class ProminentObjectProcessor(
+class ProminentObjectFrameProcessor(
         graphicOverlay: GraphicOverlay,
         private val workflowModel: WorkflowModel) :
-    FrameProcessorBase<List<DetectedObject>>() {
+    FrameProcessor {
+
+    // To keep the latest frame and its metadata.
+    private var latestFrame: ByteBuffer? = null
+    private var latestFrameMetaData: FrameMetadata? = null
+
+    // To keep the frame and metadata in process.
+    private var processingFrame: ByteBuffer? = null
+    private var processingFrameMetaData: FrameMetadata? = null
+
+    private val executor = ScopedExecutor(TaskExecutors.MAIN_THREAD)
+
+    /** Processes the input frame with the underlying detector.  */
+    @Synchronized
+    override fun process(
+            data: ByteBuffer,
+            frameMetadata: FrameMetadata,
+            graphicOverlay: GraphicOverlay
+    ) {
+        latestFrame = data
+        latestFrameMetaData = frameMetadata
+        if (processingFrame == null && processingFrameMetaData == null) {
+            processLatestFrame(graphicOverlay)
+        }
+    }
+
+    @Synchronized
+    private fun processLatestFrame(graphicOverlay: GraphicOverlay) {
+        processingFrame = latestFrame
+        processingFrameMetaData = latestFrameMetaData
+        latestFrame = null
+        latestFrameMetaData = null
+        val frame = processingFrame ?: return
+        val frameMetaData = processingFrameMetaData ?: return
+        val image = InputImage.fromByteBuffer(
+                frame,
+                frameMetaData.width,
+                frameMetaData.height,
+                frameMetaData.rotation,
+                InputImage.IMAGE_FORMAT_NV21
+        )
+        val startMs = SystemClock.elapsedRealtime()
+        detectInImage(image)
+                .addOnSuccessListener(executor) { results: List<DetectedObject> ->
+                    Log.d(TAG, "Latency is: ${SystemClock.elapsedRealtime() - startMs} " + results)
+                    this.onSuccess(CameraInputInfo(frame, frameMetaData), results, graphicOverlay)
+                    processLatestFrame(graphicOverlay)
+                }
+                .addOnFailureListener(executor) { e -> OnFailureListener {
+                    Log.e(TAG, "Object detection failed!", it)
+                } }
+    }
+
+
 
     private val detector: ObjectDetector
     private val confirmationController: ObjectConfirmationController = ObjectConfirmationController(graphicOverlay)
@@ -76,7 +129,7 @@ class ProminentObjectProcessor(
     }
 
     override fun stop() {
-        super.stop()
+        executor.shutdown()
         try {
             detector.close()
         } catch (e: IOException) {
@@ -84,12 +137,12 @@ class ProminentObjectProcessor(
         }
     }
 
-    override fun detectInImage(image: InputImage): Task<List<DetectedObject>> {
+    fun detectInImage(image: InputImage): Task<List<DetectedObject>> {
         return detector.process(image)
     }
 
     @MainThread
-    override fun onSuccess(
+    fun onSuccess(
         inputInfo: InputInfo,
         results: List<DetectedObject>,
         graphicOverlay: GraphicOverlay
@@ -180,10 +233,6 @@ class ProminentObjectProcessor(
                 reticleCenterY + reticleOuterRingRadius
         )
         return reticleRect.intersect(boxRect)
-    }
-
-    override fun onFailure(e: Exception) {
-        Log.e(TAG, "Object detection failed!", e)
     }
 
     companion object {
