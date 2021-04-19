@@ -16,10 +16,13 @@
 
 package com.google.mlkit.md.objectdetection
 
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.RectF
 import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.MainThread
+import androidx.core.graphics.get
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.TaskExecutors
 import com.google.mlkit.md.*
@@ -150,20 +153,20 @@ class ProminentObjectFrameProcessor(
             Log.d("XXX", "XXX Res $objectIndex (tid=${result.trackingId}) ${result.boundingBox} lab=${l(result.labels)} ")
         }
 
+        var objectIndex = -1
+        for (oi in results.indices) {
+            if (goodResult(inputInfo, results[oi])) {
+                objectIndex = oi
+                break
+            }
+        }
         graphicOverlay.clear()
-        if (results.isEmpty()) {
+        if (objectIndex == -1) {
             confirmationController.reset()
             workflowModel.setWorkflowState(WorkflowState.DETECTING)
             graphicOverlay.add(ObjectReticleGraphic(graphicOverlay, cameraReticleAnimator))
             cameraReticleAnimator.start()
         } else {
-            var objectIndex = 0
-            for (oi in results.indices) {
-                if (goodResult(inputInfo, results[oi])) {
-                    objectIndex = oi
-                    break
-                }
-            }
 
             if (objectBoxOverlapsConfirmationReticle(graphicOverlay, results[objectIndex])) {
                 val result = results[objectIndex]
@@ -195,19 +198,57 @@ class ProminentObjectFrameProcessor(
 
     val good = HashMap<Int, Boolean>()
     private fun goodResult(inputInfo: CameraInputInfo, result: DetectedObject): Boolean {
+        //val res = good.get(result.trackingId)
+        //Log.d("XXX", "goodResult ${result.trackingId} = $res")
+        //if (res!=null) return res
 
-        //DetectedObjectInfo(result, inputInfo).getBitmap()
+        var createdBitmap = Bitmap.createBitmap(
+                inputInfo.getBitmap(),
+                result.boundingBox.left,
+                result.boundingBox.top,
+                result.boundingBox.width(),
+                result.boundingBox.height()
+        )
+        val bm = Bitmap.createScaledBitmap(createdBitmap, 20, 20, /* filter= */ true)
+        val data = ArrayList<Int>()
+        for (x in 6..13)
+            for (y in 6..13) {
+                val c = bm.get(x, y)
+                data.add(Color.red(c))
+                data.add(Color.green(c))
+                data.add(Color.blue(c))
+            }
 
-        val res = good.get(result.trackingId)
-        if (res!=null) return res
+
+// The mean average
+        var mean = 0.0
+        for (i in 0 until data.size) {
+            mean += data[i]
+        }
+        mean /= data.size
+
+// The variance
+        var variance = 0.0
+        for (i in 0 until data.size) {
+            variance += Math.pow(data[i] - mean, 2.0)
+        }
+        variance /= data.size
+
+// Standard Deviation
+        val std = Math.sqrt(variance)
 
 
-        return true
+        //Log.d("XXX", "goodResult mean $mean std=$std for $data" )
+
+        val res2 = if (std < 35 && mean>130) true else false
+        good.put(result.trackingId, res2)
+        Log.d("XXX", "goodResult ${result.trackingId} := $res2  mean $mean std=$std for $data")
+        return res2
     }
 
     private fun objectBoxOverlapsConfirmationReticle(
-        graphicOverlay: GraphicOverlay,
-        visionObject: DetectedObject
+            graphicOverlay: GraphicOverlay,
+            visionObject: DetectedObject
     ): Boolean {
         val boxRect = graphicOverlay.translateRect(visionObject.boundingBox)
         val reticleCenterX = graphicOverlay.width / 2f

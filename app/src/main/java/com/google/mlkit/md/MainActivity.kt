@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
         if (!Utils.allPermissionsGranted(this)) {
             Utils.requestRuntimePermissions(this)
         } else {
-            startActivity(Intent(this, LiveObjectDetectionActivity::class.java))
+            //startActivity(Intent(this, LiveObjectDetectionActivity::class.java))
         }
     }
 }

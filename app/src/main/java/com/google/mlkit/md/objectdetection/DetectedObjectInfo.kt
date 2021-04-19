@@ -56,17 +56,23 @@ class DetectedObjectInfo(
     @Synchronized
     fun getBitmap(): Bitmap {
 
-        val boundingBox = detectedObject.boundingBox
         var createdBitmap = Bitmap.createBitmap(
                 inputInfo.getBitmap(),
-                boundingBox.left,
-                boundingBox.top,
-                boundingBox.width(),
-                boundingBox.height()
+                detectedObject.boundingBox.left,
+                detectedObject.boundingBox.top,
+                detectedObject.boundingBox.width(),
+                detectedObject.boundingBox.height()
         )
+
         if (createdBitmap.width > MAX_IMAGE_WIDTH) {
             val dstHeight = (MAX_IMAGE_WIDTH.toFloat() / createdBitmap.width * createdBitmap.height).toInt()
-            return Bitmap.createScaledBitmap(createdBitmap, MAX_IMAGE_WIDTH, dstHeight, /* filter= */ false)
+            createdBitmap = Bitmap.createScaledBitmap(createdBitmap, MAX_IMAGE_WIDTH, dstHeight, /* filter= */ false)
+        }
+
+        if (false) {
+            val lilleBm = Bitmap.createScaledBitmap(createdBitmap, 20, 20, /* filter= */ true)
+            val dstHeight = (MAX_IMAGE_WIDTH.toFloat() / createdBitmap.width * createdBitmap.height).toInt()
+            createdBitmap = Bitmap.createScaledBitmap(lilleBm, MAX_IMAGE_WIDTH, dstHeight, /* filter= */ false)
         }
         return createdBitmap
     }
