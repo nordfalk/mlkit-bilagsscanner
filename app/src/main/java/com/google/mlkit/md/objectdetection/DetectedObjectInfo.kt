@@ -19,7 +19,7 @@ package com.google.mlkit.md.objectdetection
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
 import android.util.Log
-import com.google.mlkit.md.InputInfo
+import com.google.mlkit.md.CameraInputInfo
 import com.google.mlkit.vision.objects.DetectedObject
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -29,7 +29,7 @@ import java.io.IOException
  */
 class DetectedObjectInfo(
     val detectedObject: DetectedObject,
-    val inputInfo: InputInfo
+    val inputInfo: CameraInputInfo
 ) {
 
     private var bitmap: Bitmap? = null

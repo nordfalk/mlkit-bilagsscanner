@@ -21,7 +21,6 @@ import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.MainThread
 import com.google.android.gms.tasks.OnFailureListener
-import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.TaskExecutors
 import com.google.mlkit.md.*
 import com.google.mlkit.md.camera.*
@@ -35,7 +34,6 @@ import com.google.mlkit.vision.objects.ObjectDetectorOptionsBase
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
 import java.io.IOException
 import java.nio.ByteBuffer
-import java.util.*
 
 /** A processor to run object detector in prominent object only mode.  */
 class ProminentObjectFrameProcessor(
@@ -43,56 +41,42 @@ class ProminentObjectFrameProcessor(
         private val workflowModel: WorkflowModel) :
     FrameProcessor {
 
-    // To keep the latest frame and its metadata.
-    private var latestFrame: ByteBuffer? = null
-    private var latestFrameMetaData: FrameMetadata? = null
-
-    // To keep the frame and metadata in process.
-    private var processingFrame: ByteBuffer? = null
-    private var processingFrameMetaData: FrameMetadata? = null
-
+    private var processing = false
     private val executor = ScopedExecutor(TaskExecutors.MAIN_THREAD)
 
     /** Processes the input frame with the underlying detector.  */
     @Synchronized
     override fun process(
-            data: ByteBuffer,
+            frame: ByteBuffer,
             frameMetadata: FrameMetadata,
             graphicOverlay: GraphicOverlay
     ) {
-        latestFrame = data
-        latestFrameMetaData = frameMetadata
-        if (processingFrame == null && processingFrameMetaData == null) {
-            processLatestFrame(graphicOverlay)
+        if (processing) { // skip frames if already processing
+            return
         }
-    }
-
-    @Synchronized
-    private fun processLatestFrame(graphicOverlay: GraphicOverlay) {
-        processingFrame = latestFrame
-        processingFrameMetaData = latestFrameMetaData
-        latestFrame = null
-        latestFrameMetaData = null
-        val frame = processingFrame ?: return
-        val frameMetaData = processingFrameMetaData ?: return
+        processing = true
         val image = InputImage.fromByteBuffer(
                 frame,
-                frameMetaData.width,
-                frameMetaData.height,
-                frameMetaData.rotation,
+                frameMetadata.width,
+                frameMetadata.height,
+                frameMetadata.rotation,
                 InputImage.IMAGE_FORMAT_NV21
         )
+        val cameraInputInfo = CameraInputInfo(frame, frameMetadata)
         val startMs = SystemClock.elapsedRealtime()
-        detectInImage(image)
+        detector.process(image)
                 .addOnSuccessListener(executor) { results: List<DetectedObject> ->
+                    processing = false
                     Log.d(TAG, "Latency is: ${SystemClock.elapsedRealtime() - startMs} " + results)
-                    this.onSuccess(CameraInputInfo(frame, frameMetaData), results, graphicOverlay)
-                    processLatestFrame(graphicOverlay)
+                    this.onDetectionSuccess(cameraInputInfo, results, graphicOverlay)
                 }
                 .addOnFailureListener(executor) { e -> OnFailureListener {
+                    processing = false
                     Log.e(TAG, "Object detection failed!", it)
                 } }
+
     }
+
 
 
 
@@ -113,12 +97,17 @@ class ProminentObjectFrameProcessor(
                 .build()
             options = CustomObjectDetectorOptions.Builder(localModel)
                 .setDetectorMode(ObjectDetectorOptions.STREAM_MODE)
+                    .setClassificationConfidenceThreshold(0.5f)
+                    .setMaxPerObjectLabelCount(3)
                 .enableClassification() // Always enable classification for custom models
                 .build()
         } else {
          */
             val optionsBuilder = ObjectDetectorOptions.Builder()
                     .setDetectorMode(ObjectDetectorOptions.STREAM_MODE)
+                    .enableMultipleObjects()
+        /*
+*/
             if (isClassificationEnabled) {
                 optionsBuilder.enableClassification()
             }
@@ -137,23 +126,13 @@ class ProminentObjectFrameProcessor(
         }
     }
 
-    fun detectInImage(image: InputImage): Task<List<DetectedObject>> {
-        return detector.process(image)
-    }
-
     @MainThread
-    fun onSuccess(
-        inputInfo: InputInfo,
-        results: List<DetectedObject>,
-        graphicOverlay: GraphicOverlay
-    ) {
-        var objects = results
+    fun onDetectionSuccess(inputInfo: CameraInputInfo, results: List<DetectedObject>, graphicOverlay: GraphicOverlay) {
         if (!workflowModel.isCameraLive) {
             return
         }
-        for (i in objects.indices) {
-            val result = objects[i]
-
+        for (i in results.indices) {
+            val result = results[i]
             fun l(labels: List<DetectedObject.Label>): String {
                 return labels.map { l -> "l" + l.index + ":" + l.text + l.index }.toString()
             }
@@ -161,19 +140,15 @@ class ProminentObjectFrameProcessor(
             Log.d("XXX", "XXX Res $i ${result.trackingId} ${result.boundingBox} lab=${l(result.labels)} ")
         }
 
-        if (PreferenceUtils.isClassificationEnabled(graphicOverlay.context)) {
-            val qualifiedObjects = ArrayList<DetectedObject>()
-            qualifiedObjects.addAll(objects)
-            objects = qualifiedObjects
-        }
-
         val objectIndex = 0
-        val hasValidObjects = objects.isNotEmpty()
-        if (!hasValidObjects) {
+        if (!results.isNotEmpty()) {
             confirmationController.reset()
             workflowModel.setWorkflowState(WorkflowState.DETECTING)
+            graphicOverlay.clear()
+            graphicOverlay.add(ObjectReticleGraphic(graphicOverlay, cameraReticleAnimator))
+            cameraReticleAnimator.start()
         } else {
-            val visionObject = objects[objectIndex]
+            val visionObject = results[objectIndex]
             if (objectBoxOverlapsConfirmationReticle(graphicOverlay, visionObject)) {
                 // User is confirming the object selection.
                 confirmationController.confirming(visionObject.trackingId)
@@ -185,19 +160,15 @@ class ProminentObjectFrameProcessor(
                 confirmationController.reset()
                 workflowModel.setWorkflowState(WorkflowState.DETECTED)
             }
-        }
 
-        graphicOverlay.clear()
-        if (!hasValidObjects) {
-            graphicOverlay.add(ObjectReticleGraphic(graphicOverlay, cameraReticleAnimator))
-            cameraReticleAnimator.start()
-        } else {
-            if (objectBoxOverlapsConfirmationReticle(graphicOverlay, objects[0])) {
+            graphicOverlay.clear()
+
+            if (objectBoxOverlapsConfirmationReticle(graphicOverlay, results[0])) {
                 // User is confirming the object selection.
                 cameraReticleAnimator.cancel()
                 graphicOverlay.add(
                         ObjectGraphicInProminentMode(
-                                graphicOverlay, objects[0], confirmationController
+                                graphicOverlay, results[0], confirmationController
                         )
                 )
                 if (!confirmationController.isConfirmed) {
@@ -209,7 +180,7 @@ class ProminentObjectFrameProcessor(
                 // indicates user is not trying to pick this object.
                 graphicOverlay.add(
                         ObjectGraphicInProminentMode(
-                                graphicOverlay, objects[0], confirmationController
+                                graphicOverlay, results[0], confirmationController
                         )
                 )
                 graphicOverlay.add(ObjectReticleGraphic(graphicOverlay, cameraReticleAnimator))

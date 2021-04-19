@@ -17,7 +17,7 @@
 
   <Button
       android:id="@+id/startButton"
-      android:text="Start"
+      android:text="Start nu 2"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
       android:scrollbars="vertical"/>
