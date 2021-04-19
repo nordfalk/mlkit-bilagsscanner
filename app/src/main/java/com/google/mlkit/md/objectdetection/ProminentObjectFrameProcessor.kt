@@ -64,6 +64,15 @@ class ProminentObjectFrameProcessor(
         )
         val cameraInputInfo = CameraInputInfo(frame, frameMetadata)
         val startMs = SystemClock.elapsedRealtime()
+
+        /*
+        Log.d(TAG, "Bitmap is: ${cameraInputInfo.getBitmap()} ")
+
+        println(cameraInputInfo.getBitmap())
+        Log.d(TAG, "Bitmap Latency is: ${SystemClock.elapsedRealtime() - startMs} ")
+
+         */
+
         detector.process(image)
                 .addOnSuccessListener(executor) { results: List<DetectedObject> ->
                     processing = false
@@ -131,58 +140,46 @@ class ProminentObjectFrameProcessor(
         if (!workflowModel.isCameraLive) {
             return
         }
-        for (i in results.indices) {
-            val result = results[i]
+//        inputInfo.getBitmap().scale()
+        for (objectIndex in results.indices) {
+            val result = results[objectIndex]
             fun l(labels: List<DetectedObject.Label>): String {
                 return labels.map { l -> "l" + l.index + ":" + l.text + l.index }.toString()
             }
 
-            Log.d("XXX", "XXX Res $i ${result.trackingId} ${result.boundingBox} lab=${l(result.labels)} ")
+            Log.d("XXX", "XXX Res $objectIndex (tid=${result.trackingId}) ${result.boundingBox} lab=${l(result.labels)} ")
         }
 
-        val objectIndex = 0
-        if (!results.isNotEmpty()) {
+        graphicOverlay.clear()
+        if (results.isEmpty()) {
             confirmationController.reset()
             workflowModel.setWorkflowState(WorkflowState.DETECTING)
-            graphicOverlay.clear()
             graphicOverlay.add(ObjectReticleGraphic(graphicOverlay, cameraReticleAnimator))
             cameraReticleAnimator.start()
         } else {
-            val visionObject = results[objectIndex]
-            if (objectBoxOverlapsConfirmationReticle(graphicOverlay, visionObject)) {
+            val objectIndex = 0
+            if (objectBoxOverlapsConfirmationReticle(graphicOverlay, results[objectIndex])) {
+                val result = results[objectIndex]
                 // User is confirming the object selection.
-                confirmationController.confirming(visionObject.trackingId)
-                workflowModel.confirmingObject(
-                        DetectedObjectInfo(visionObject, inputInfo), confirmationController.progress
-                )
-            } else {
-                // Object detected but user doesn't want to pick this one.
-                confirmationController.reset()
-                workflowModel.setWorkflowState(WorkflowState.DETECTED)
-            }
+                confirmationController.confirming(result.trackingId)
+                workflowModel.confirmingObject(DetectedObjectInfo(result, inputInfo), confirmationController.progress)
 
-            graphicOverlay.clear()
-
-            if (objectBoxOverlapsConfirmationReticle(graphicOverlay, results[0])) {
                 // User is confirming the object selection.
                 cameraReticleAnimator.cancel()
-                graphicOverlay.add(
-                        ObjectGraphicInProminentMode(
-                                graphicOverlay, results[0], confirmationController
-                        )
-                )
+                //for (objectIndex in results.indices)
+                graphicOverlay.add(ObjectGraphicInProminentMode(graphicOverlay, results[objectIndex], confirmationController))
                 if (!confirmationController.isConfirmed) {
                     // Shows a loading indicator to visualize the confirming progress if in auto search mode.
                     graphicOverlay.add(ObjectConfirmationGraphic(graphicOverlay, confirmationController))
                 }
             } else {
+                // Object detected but user doesn't want to pick this one.
+                confirmationController.reset()
+                workflowModel.setWorkflowState(WorkflowState.DETECTED)
+
                 // Object is detected but the confirmation reticle is moved off the object box, which
                 // indicates user is not trying to pick this object.
-                graphicOverlay.add(
-                        ObjectGraphicInProminentMode(
-                                graphicOverlay, results[0], confirmationController
-                        )
-                )
+                graphicOverlay.add(ObjectGraphicInProminentMode(graphicOverlay, results[0], confirmationController))
                 graphicOverlay.add(ObjectReticleGraphic(graphicOverlay, cameraReticleAnimator))
                 cameraReticleAnimator.start()
             }
