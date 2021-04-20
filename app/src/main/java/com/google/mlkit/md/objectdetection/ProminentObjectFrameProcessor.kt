@@ -198,9 +198,10 @@ class ProminentObjectFrameProcessor(
 
     val good = HashMap<Int, Boolean>()
     private fun goodResult(inputInfo: CameraInputInfo, result: DetectedObject): Boolean {
-        //val res = good.get(result.trackingId)
-        //Log.d("XXX", "goodResult ${result.trackingId} = $res")
-        //if (res!=null) return res
+        //return true
+        val res = good.get(result.trackingId)
+        Log.d("XXX", "goodResult ${result.trackingId} = $res")
+        if (res!=null) return res
 
         var createdBitmap = Bitmap.createBitmap(
                 inputInfo.getBitmap(),
